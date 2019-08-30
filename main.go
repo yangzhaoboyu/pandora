@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"pandora/common"
@@ -12,37 +11,19 @@ import (
 	"time"
 )
 
-var (
-	config    conf.Config
-	waitGroup sync.WaitGroup
-)
-
 func main() {
-
-	confPath := flag.String("conf", "app.toml", "config path")
-	flag.Parse()
-
-	if *confPath == "" {
-		return
-	}
-	err := common.LoadConfig(*confPath, &config)
-	if err != nil {
-		return
-	}
-
 	//OSS initialization
-	client, err := oss.New(config.Oss.Endpoint, config.Oss.AccessKeyId, config.Oss.AccessKeySecret)
+	client, err := oss.New(conf.AppConfig.Oss.Endpoint, conf.AppConfig.Oss.AccessKeyId, conf.AppConfig.Oss.AccessKeySecret)
 	if err != nil {
 		panic(err)
 	}
-	bucket, err := client.Bucket(config.Oss.Bucket)
+	bucket, err := client.Bucket(conf.AppConfig.Oss.Bucket)
 	if err != nil {
 		panic(err)
 	}
-
 	filesChan := make(chan string)
-	go filepath.Walk(config.Backup.Path, scanner.Visit(filesChan))
-
+	go filepath.Walk(conf.AppConfig.Backup.Path, scanner.Visit(filesChan))
+	var waitGroup sync.WaitGroup
 	for {
 		select {
 		case path := <-filesChan:
@@ -54,7 +35,6 @@ func main() {
 	}
 
 end:
-
 	waitGroup.Wait()
 	fmt.Println("End of upload")
 }

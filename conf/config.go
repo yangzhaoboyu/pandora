@@ -1,5 +1,9 @@
 package conf
 
+import "github.com/koding/multiconfig"
+
+var AppConfig = &Config{}
+
 //Configuration
 type Config struct {
 	Database DataBaseConfig
@@ -8,7 +12,11 @@ type Config struct {
 }
 
 type DataBaseConfig struct {
-	Path string
+	Host     string
+	Port     int
+	DataBase string
+	User     string
+	PassWord string
 }
 
 type BackupConfig struct {
@@ -20,4 +28,13 @@ type OssConfig struct {
 	AccessKeyId     string
 	AccessKeySecret string
 	Bucket          string
+}
+
+//Load configuration file
+func init() {
+	loader := multiconfig.NewWithPath("app.toml")
+	err := loader.Load(&AppConfig)
+	if err != nil {
+		panic(err)
+	}
 }
